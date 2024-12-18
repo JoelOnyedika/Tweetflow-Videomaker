@@ -22,7 +22,7 @@ export const data = {
   strokeColor: "black",
   lineHeight: 2, // Increased for better readability
   textColor: "yellow",
-  textOutline: "white",
+  textOutline: "red",
   marginTop: 960, // Moved closer to the center
   marginLeft: 10, // Reduced side margins
   marginRight: 10, // Reduced side margins
