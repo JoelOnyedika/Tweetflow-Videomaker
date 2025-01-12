@@ -1,94 +1,90 @@
 import React from "react";
-import { useCurrentFrame, useVideoConfig } from "remotion";
+import { Audio, staticFile, useCurrentFrame, useVideoConfig } from "remotion";
 
-// Use the same constants as in your canvas
 const TIKTOK_WIDTH = 1080;
-const TIKTOK_HEIGHT = 1920;
 
 export const KaraokeCaptions = ({ data }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
-  const currentTimeMs = (frame / fps) * 1000;
-  const fadeOutOpacity = Math.min(1, frame / 60);
 
-  // Calculate scale factor similar to canvas implementation
+  // Calculate current time in seconds instead of milliseconds
+  const currentTimeSec = frame / fps;
+
   const scaleFactor = width / TIKTOK_WIDTH;
+  const scaledFontSize = data.font_size;
+  const lineHeight = scaledFontSize * (data.line_height || 1.2);
 
-  const renderKaraokeText = () => {
-    return data.captions.map((caption, captionIndex) => {
-      // Check if this specific caption is active
-      const isCaptionActive =
-        currentTimeMs >= caption.startMs && currentTimeMs <= caption.endMs;
-      
-      // If this caption is not active, return null
-      if (!isCaptionActive) return null;
-      
-      // Split caption into words
-      const words = caption.text.split(" ");
-      
-      // Calculate how many words to color based on current time
-      const totalCaptionDuration = caption.endMs - caption.startMs;
-      const wordsColorProgress = Math.floor(
-        ((currentTimeMs - caption.startMs) / totalCaptionDuration) *
-          words.length
-      );
+  // Break captions into chunks of 7
+  const chunkSize = 7;
+  const chunks = [];
+  for (let i = 0; i < data.captions.length; i += chunkSize) {
+    chunks.push(data.captions.slice(i, i + chunkSize));
+  }
 
-      // Scale margins and font size using the same approach as canvas
-      const scaledMarginLeft = data.marginLeft * scaleFactor;
-      const scaledMarginTop = data.marginTop * scaleFactor;
-      const scaledFontSize = data.fontSize * scaleFactor;
-      const lineHeight = scaledFontSize * (data.lineHeight || 1.2);
+  const currentChunkIndex = chunks.findIndex(chunk =>
+    chunk[chunk.length - 1]?.end_seconds >= currentTimeSec
+  );
+  const currentChunk = chunks[currentChunkIndex] || [];
 
-      return (
-        <div
-          key={captionIndex}
-          style={{
-            position: "absolute",
-            bottom: `${height - scaledMarginTop}px`,
-            left: `${scaledMarginLeft}px`,
-            width: `${width - (scaledMarginLeft * 2)}px`,
-            zIndex: 10,
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <div
-            style={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              opacity: fadeOutOpacity,
-              maxWidth: "100%",
-            }}
-          >
-            {words.map((word, wordIndex) => {
-              // Determine if this word should be colored
-              const isColored = wordIndex < wordsColorProgress;
-              
-              return (
-                <span
-                  key={wordIndex}
-                  style={{
-                    color: isColored ? data.textColor : data.textOutline,
-                    fontFamily: data.fontFamily,
-                    fontWeight: "bold",
-                    fontSize: `${scaledFontSize*2}px`,
-                    marginRight: `${data.marginRight * scaleFactor}px`,
-                    textShadow: `1px 1px 0 ${data.strokeColor}, 
-                                 -1px -1px 0 ${data.strokeColor}`,
-                    opacity: fadeOutOpacity,
-                    lineHeight: `${lineHeight}px`,
-                  }}
-                >
-                  {word}
-                </span>
-              );
-            })}
-          </div>
-        </div>
-      );
-    });
-  };
+  if (!data.captions || data.captions.length === 0) {
+    return <div>No captions available</div>;
+  }
 
-  return <>{renderKaraokeText()}</>;
+  return (
+    <div
+      style={{
+        position: "absolute",
+        bottom: `${height - data.top_margin}px`,
+        left: `${data.left_margin}px`,
+        width: `${width - 2 * data.left_margin}px`,
+        zIndex: 10,
+        display: "flex",
+        justifyContent: "center",
+      }}
+    >
+      <Audio src={data.audio_path} />
+      <div
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          justifyContent: "center",
+          maxWidth: "100%",
+        }}
+      >
+        {currentChunk.map((caption, captionIndex) => {
+          const words = caption.text.split(" ");
+          return words.map((word, wordIndex) => {
+            const wordStartSec =
+              caption.start_seconds +
+              (wordIndex / words.length) * (caption.end_seconds - caption.start_seconds);
+            const wordEndSec =
+              caption.start_seconds +
+              ((wordIndex + 1) / words.length) * (caption.end_seconds - caption.start_seconds);
+            const isHighlighted =
+              currentTimeSec >= wordStartSec && currentTimeSec < wordEndSec;
+
+            return (
+              <span
+                key={`${captionIndex}-${wordIndex}`}
+                style={{
+                  color: isHighlighted ? data.text_color : data.text_outline_color,
+                  fontFamily: data.font_family || "Arial",
+                  fontSize: `${scaledFontSize}px`,
+                  marginLeft: `${data.left_margin}px`,
+                  lineHeight: `${lineHeight}px`,
+                  textShadow:
+                    data.fontSize > 40
+                      ? `1px 1px 0 ${data.text_outline_color}, -1px -1px 0 ${data.text_outline_color}`
+                      : "none",
+                  fontWeight: "bold",
+                }}
+              >
+                {word}
+              </span>
+            );
+          });
+        })}
+      </div>
+    </div>
+  );
 };
