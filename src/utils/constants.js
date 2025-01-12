@@ -3,8 +3,8 @@ export const data = {
   text: 'In this section, we’ll create the routes',
   template_name: 'Beach Image',
   font_family: 'Courier',
-  text_animation: 'None',
-  font_size: 70,
+  text_animation: 'WordForWord',
+  font_size: 100,
   line_height: 2,
   text_color: '#ff0000',
   background_color: '#708090',
@@ -12,7 +12,8 @@ export const data = {
   top_margin: 960,
   left_margin: 10,
   right_margin: 10,
-  media: 'https://f005.backblazeb2.com/file/tweetflow-public/templates/061a94a7-f7d3-4f03-8244-2fa1451c1fb3/5fb6d819-06e7-48d3-81df-08e9a35e781a/98cc7784-058d-4ab6-b019-ee12c5952f03.jpg',
+  // media: 'https://f005.backblazeb2.com/file/tweetflow-public/templates/061a94a7-f7d3-4f03-8244-2fa1451c1fb3/5fb6d819-06e7-48d3-81df-08e9a35e781a/98cc7784-058d-4ab6-b019-ee12c5952f03.jpg',
+  media: 'http://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
   created_at: '2024-10-26T20:36:07.767989Z',
   updated_at: '2024-12-17T08:22:53.514047Z',
   user: '061a94a7-f7d3-4f03-8244-2fa1451c1fb3',
@@ -28,6 +29,6 @@ export const data = {
     { text: 'the', start_seconds: 1.463, end_seconds: 1.533 },
     { text: 'routes', start_seconds: 1.579, end_seconds: 2.136 }
   ],
-  duration_in_frames: 55,
+  duration_in_frames: 54,
   fps: 30
 };
