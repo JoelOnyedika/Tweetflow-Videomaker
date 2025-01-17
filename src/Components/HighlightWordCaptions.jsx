@@ -3,14 +3,17 @@ import { Audio, useCurrentFrame, useVideoConfig } from "remotion";
 
 const TIKTOK_WIDTH = 1080;
 
-export const KaraokeCaptions = ({ data }) => {
+export const HighlightWord = ({ data }) => {
   const frame = useCurrentFrame();
   const { fps, width, height } = useVideoConfig();
+
+  // Calculate current time in seconds instead of milliseconds
   const currentTimeSec = frame / fps;
+
   const scaleFactor = width / TIKTOK_WIDTH;
   const scaledFontSize = data.font_size;
-  const lineHeight = scaledFontSize * (data.line_height || 1.6); // Increased line height multiplier
-  
+  const lineHeight = scaledFontSize * (data.line_height || 1.2);
+
   // Break captions into chunks of 7
   const chunkSize = 7;
   const chunks = [];
@@ -36,7 +39,8 @@ export const KaraokeCaptions = ({ data }) => {
         width: `${width - 2 * data.left_margin}px`,
         zIndex: 10,
         display: "flex",
-        justifyContent: "center",
+        justifyContent: "center"
+
       }}
     >
       <Audio src={data.audio_path} />
@@ -46,7 +50,7 @@ export const KaraokeCaptions = ({ data }) => {
           flexWrap: "wrap",
           justifyContent: "center",
           maxWidth: "100%",
-          gap: `${scaledFontSize * 0.3}px`, // Add gap between lines
+          gap: `${scaledFontSize * 0.3}px`,
         }}
       >
         {currentChunk.map((caption, captionIndex) => {
@@ -60,27 +64,32 @@ export const KaraokeCaptions = ({ data }) => {
               ((wordIndex + 1) / words.length) * (caption.end_seconds - caption.start_seconds);
             const isHighlighted =
               currentTimeSec >= wordStartSec && currentTimeSec < wordEndSec;
-            
+
             return (
               <span
                 key={`${captionIndex}-${wordIndex}`}
                 style={{
-                  color: isHighlighted ? data.highlight_color : data.text_color,
+                  color: data.text_color,
+                  backgroundColor: isHighlighted ? data.highlight_color : "transparent",
                   fontFamily: data.font_family || "Arial",
                   fontSize: `${scaledFontSize}px`,
-                  marginRight: `${scaledFontSize * 0.2}px`, // Add space between words
-                  lineHeight: `${lineHeight}px`,
+                  marginLeft: `${data.left_margin + 5}px`,
+                  marginBottom: `${lineHeight - scaledFontSize}px`,
+                  padding: `1px 4px`,
+                  borderRadius: "1rem",
                   textShadow:
-                    data.fontSize > 40
+                    scaledFontSize > 40
                       ? `1px 1px 0 ${data.text_outline_color}, -1px -1px 0 ${data.text_outline_color}`
                       : "none",
                   fontWeight: "bold",
-                  display: "inline-block", // Help with proper word wrapping
-                  verticalAlign: "top", // Align words properly
+                  lineHeight: 'normal',
+                  display: "inline-block",
+                  verticalAlign: "top",
                 }}
               >
                 {word}
               </span>
+
             );
           });
         })}
